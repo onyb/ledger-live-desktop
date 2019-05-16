@@ -60,6 +60,15 @@ const WarningDisplay = styled(ErrorDisplay)`
   color: ${p => p.theme.colors.warning};
 `
 
+const InfoDisplay = styled(Box)`
+  position: absolute;
+  bottom: -20px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: ${p => p.theme.colors.dark};
+`
+
 const Base = styled.input.attrs({
   ff: p => (p.ff || p.small ? 'Open Sans' : 'Open Sans|SemiBold'),
   fontSize: 4,
@@ -113,6 +122,7 @@ type Props = {
   loading?: boolean,
   error?: ?Error | boolean,
   warning?: ?Error | boolean,
+  info?: ?Error | boolean,
   small?: boolean,
   editInPlace?: boolean,
 }
@@ -195,6 +205,7 @@ class Input extends PureComponent<Props, State> {
       editInPlace,
       small,
       error,
+      info,
       loading,
       warning,
       ...props
@@ -208,6 +219,7 @@ class Input extends PureComponent<Props, State> {
         {...containerProps}
         small={small}
         error={error}
+        info={info}
         warning={warning}
         editInPlace={editInPlace}
       >
@@ -230,7 +242,12 @@ class Input extends PureComponent<Props, State> {
             <WarningDisplay>
               <TranslatedError error={warning} />
             </WarningDisplay>
+          ) : info ? (
+            <InfoDisplay>
+              ↳ <TranslatedError error={info} />
+            </InfoDisplay>
           ) : null}
+
           {loading && !isFocus ? (
             <LoadingDisplay>
               <Spinner size={16} />

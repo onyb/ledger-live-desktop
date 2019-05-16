@@ -135,7 +135,7 @@ export class StepAmountFooter extends PureComponent<
       if (syncId !== this.syncId) return
       const isRecipientValid = await bridge.isRecipientValid(
         account,
-        bridge.getTransactionRecipient(account, transaction),
+        bridge.getTransactionCannonicalRecipient(account, transaction),
       )
       if (syncId !== this.syncId) return
       const isValidTransaction = await bridge

@@ -31,6 +31,7 @@ import type { EditProps, WalletBridge } from './types'
 
 type Transaction = {
   recipient: string,
+  recipientCannonical: string,
   amount: BigNumber,
   gasPrice: ?BigNumber,
   gasLimit: BigNumber,
@@ -424,6 +425,7 @@ const EthereumBridge: WalletBridge<Transaction> = {
   createTransaction: () => ({
     amount: BigNumber(0),
     recipient: '',
+    recipientCannonical: '',
     gasPrice: null,
     gasLimit: BigNumber(0x5208),
   }),
@@ -435,12 +437,14 @@ const EthereumBridge: WalletBridge<Transaction> = {
 
   getTransactionAmount: (a, t) => t.amount,
 
-  editTransactionRecipient: (account, t, recipient) => ({
+  editTransactionRecipient: (account, t, recipient, recipientCannonical) => ({
     ...t,
     recipient,
+    recipientCannonical,
   }),
 
   getTransactionRecipient: (a, t) => t.recipient,
+  getTransactionCannonicalRecipient: (a, t) => t.recipientCannonical,
 
   EditFees,
 

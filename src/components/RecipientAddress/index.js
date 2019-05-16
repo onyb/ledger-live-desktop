@@ -11,6 +11,7 @@ import { radii } from 'styles/theme'
 
 import QRCodeCameraPickerCanvas from 'components/QRCodeCameraPickerCanvas'
 import Box from 'components/base/Box'
+import Text from 'components/base/Text'
 import Input from 'components/base/Input'
 import { track } from 'analytics/segment'
 
@@ -25,6 +26,17 @@ const Right = styled(Box).attrs({
   border-top-right-radius: ${radii[1]}px;
   border-bottom-right-radius: ${radii[1]}px;
   border-left: 1px solid ${p => p.theme.colors.fog};
+`
+
+const Left = styled(Box).attrs({
+  bg: '#6490f1',
+  px: 3,
+  align: 'center',
+  justify: 'center',
+})`
+  border-top-left-radius: ${radii[1]}px;
+  border-bottom-left-radius: ${radii[1]}px;
+  border-right: 1px solid ${p => p.theme.colors.fog};
 `
 
 const WrapperQrCode = styled(Box)`
@@ -84,7 +96,7 @@ class RecipientAddress extends PureComponent<Props, State> {
   }
 
   render() {
-    const { onChange, withQrCode, value, ...rest } = this.props
+    const { onChange, withQrCode, value, isENS, ...rest } = this.props
     const { qrReaderOpened } = this.state
 
     const renderRight = withQrCode ? (
@@ -101,10 +113,18 @@ class RecipientAddress extends PureComponent<Props, State> {
       </Right>
     ) : null
 
+    const renderLeft = isENS ? (
+      <Left>
+        <Text fontSize={12} color="white" fontWeight={900}>
+          ENS
+        </Text>
+      </Left>
+    ) : null
+
     const preOnChange = text => onChange((text && text.replace(/\s/g, '')) || '')
     return (
       <Box relative justifyContent="center">
-        <Input {...rest} value={value} onChange={preOnChange} renderRight={renderRight} />
+        <Input {...rest} value={value} onChange={preOnChange} renderRight={renderRight} renderLeft={renderLeft} />
       </Box>
     )
   }

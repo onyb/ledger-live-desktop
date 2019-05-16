@@ -11,6 +11,8 @@ import RecipientAddress from 'components/RecipientAddress'
 import { track } from 'analytics/segment'
 import { createCustomErrorClass, CantScanQRCode } from '@ledgerhq/errors'
 
+import {getAddressFromENSName, isValidENSName} from 'components/RecipientAddress/ENS'
+
 type Props<Transaction> = {
   t: T,
   account: Account,
@@ -51,7 +53,7 @@ class RecipientField<Transaction> extends Component<
   async resync() {
     const { account, bridge, transaction } = this.props
     const syncId = ++this.syncId
-    const recipient = bridge.getTransactionRecipient(account, transaction)
+    const recipient = bridge.getTransactionCannonicalRecipient(account, transaction)
     const isValid = await bridge.isRecipientValid(account, recipient)
     const warning = await bridge.getRecipientWarning(account, recipient)
     if (syncId !== this.syncId) return
@@ -75,10 +77,14 @@ class RecipientField<Transaction> extends Component<
       t = bridge.editTransactionRecipient(account, t, '')
       this.setState({ QRCodeRefusedReason: new CantScanQRCode() })
     } else {
-      t = bridge.editTransactionRecipient(account, t, recipient)
       if (QRCodeRefusedReason) this.setState({ QRCodeRefusedReason: null })
-    }
 
+      let cannonicalRecipient = recipient
+      if (account.currency.scheme === "ethereum" && isValidENSName(recipient)) {
+        cannonicalRecipient = await getAddressFromENSName(recipient)
+      }
+      t = bridge.editTransactionRecipient(account, t, recipient, cannonicalRecipient)
+    }
     onChangeTransaction(t)
     return true
   }
@@ -92,10 +98,14 @@ class RecipientField<Transaction> extends Component<
     const { isValid, warning, QRCodeRefusedReason } = this.state
     const value = bridge.getTransactionRecipient(account, transaction)
 
+    const isENS = isValidENSName(value)
+
     const error =
-      !value || isValid
+      !value || isENS || isValid
         ? QRCodeRefusedReason
         : warning || new InvalidAddress(null, { currencyName: account.currency.name })
+
+    const info = !value || isENS ? bridge.getTransactionCannonicalRecipient(account, transaction) : null
 
     return (
       <Box flow={1}>
@@ -108,8 +118,10 @@ class RecipientField<Transaction> extends Component<
           withQrCode
           error={error}
           warning={warning}
+          info={info}
           value={value}
           onChange={this.onChange}
+          isENS={isENS}
         />
       </Box>
     )

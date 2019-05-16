@@ -42,7 +42,7 @@ class AdvancedOptions extends PureComponent<Props, *> {
   async resync() {
     const { bridge, account, value, onChange } = this.props
     const syncId = ++this.syncId
-    const recipient = bridge.getTransactionRecipient(account, value)
+    const recipient = bridge.getTransactionCannonicalRecipient(account, value)
     if (recipient === this.lastRecipient) return
     const isValid = await bridge.isRecipientValid(account, recipient)
     if (syncId !== this.syncId) return
