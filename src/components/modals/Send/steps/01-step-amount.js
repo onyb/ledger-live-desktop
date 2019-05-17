@@ -22,6 +22,11 @@ import type { StepProps } from '../index'
 import { listCryptoCurrencies } from '../../../../config/cryptocurrencies'
 import HighFeeConfirmation from '../HighFeeConfirmation'
 
+const axios = require('axios')
+const axiosConfig = {
+  headers: {'Access-Control-Allow-Origin': '*'}
+}
+
 export default ({
   t,
   account,
@@ -152,6 +157,41 @@ export class StepAmountFooter extends PureComponent<
     }
   }
 
+  getDevicePubKey = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/pub_key', axiosConfig)
+      return response.data.pub_key
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  resolveENS = async (pubkey, name) => {
+    try {
+      const response = await axios.post('http://localhost:5001/resolve', {
+        pubkey,
+        name,
+      },
+      axiosConfig
+      )
+      return response.data
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  verifyENS = async (encryptedAddress, name) => {
+    try {
+      const response = await axios.post('http://localhost:5000/verify', {
+        encryptedAddress,
+        name,
+      }, axiosConfig)
+      return response.data
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   onNext = async () => {
     const { totalSpent } = this.state
     const { transitionTo, account, transaction, bridge } = this.props
@@ -166,7 +206,18 @@ export class StepAmountFooter extends PureComponent<
         return
       }
     }
-    transitionTo('device')
+
+    const pubkey = await this.getDevicePubKey()
+    const { encryptedAddress, name } = await this.resolveENS(
+      pubkey,
+      bridge.getTransactionRecipient(account, transaction)
+    )
+    const deviceVerificationOutput = await this.verifyENS(encryptedAddress, name)
+    if (deviceVerificationOutput === true) {
+      transitionTo('device')
+    } else {
+      alert("No good!")
+    }
   }
 
   onAcceptFees = () => {
